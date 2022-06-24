@@ -23,16 +23,14 @@ def _co2_worker(weak_self):
 class CO2Meter:
 
     _key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
-    _device = ""
     _values = {}
     _file = ""
     _running = True
     _callback = None
 
-    def __init__(self, device="/dev/hidraw0", callback=None):
-        self._device = device
+    def __init__(self, file, callback=None):
         self._callback = callback
-        self._file = open(device, "a+b", 0)
+        self._file = file
 
         if sys.version_info >= (3,):
             set_report = [0] + self._key
