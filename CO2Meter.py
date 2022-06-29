@@ -24,6 +24,7 @@ class CO2Meter:
 
     _key = [0xc4, 0xc6, 0xc0, 0x92, 0x40, 0x23, 0xdc, 0x96]
     _values = {}
+    _lock = threading.Lock()
     _file = ""
     _running = True
     _callback = None
@@ -58,7 +59,8 @@ class CO2Meter:
             else:
                 operation = decrypted[0]
                 val = decrypted[1] << 8 | decrypted[2]
-                self._values[operation] = val
+                with self._lock:
+                    self._values[operation] = val
                 if self._callback is not None:
                     if operation == CO2METER_CO2:
                         self._callback(sensor=operation, value=val)
@@ -107,8 +109,9 @@ class CO2Meter:
         if not self._running:
             raise IOError("worker thread couldn't read data")
         result = {}
-        if CO2METER_CO2 in self._values:
-            result = {'co2': self._values[CO2METER_CO2]}
+        with self._lock:
+            if CO2METER_CO2 in self._values:
+                result = {'co2': self._values[CO2METER_CO2]}
 
         return result
 
@@ -117,8 +120,9 @@ class CO2Meter:
         if not self._running:
             raise IOError("worker thread couldn't read data")
         result = {}
-        if CO2METER_TEMP in self._values:
-            result = {'temperature': (self._values[CO2METER_TEMP]/16.0-273.15)}
+        with self._lock:
+            if CO2METER_TEMP in self._values:
+                result = {'temperature': (self._values[CO2METER_TEMP]/16.0-273.15)}
 
         return result
 
@@ -127,8 +131,9 @@ class CO2Meter:
         if not self._running:
             raise IOError("worker thread couldn't read data")
         result = {}
-        if CO2METER_HUM in self._values:
-            result = {'humidity': (self._values[CO2METER_HUM]/100.0)}
+        with self._lock:
+            if CO2METER_HUM in self._values:
+                result = {'humidity': (self._values[CO2METER_HUM]/100.0)}
         return result
 
 
